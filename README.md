@@ -95,10 +95,6 @@ Together, the screens move from venue-wide awareness to domain-specific diagnosi
 
 ![AI Operations Assistant](docs/screenshots/06-ai-operations-assistant.png)
 
-### 7. AI Insight Deep Link Navigation
-
-![AI Insight Deep Link Navigation](docs/screenshots/07-ai-insight-deep-link.png)
-
 ## Business Value
 
 The application demonstrates qualitative operational outcomes. Any values shown in Demo Mode are simulated and any KPI targets below are illustrative; they are not claims from a customer deployment.
