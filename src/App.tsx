@@ -29,11 +29,6 @@ function App() {
   const [error, setError] = useState('')
   const [simulationError, setSimulationError] = useState('')
   const [now, setNow] = useState(new Date())
-  const [demoMode, setDemoMode] = useState(() => localStorage.getItem('parkpulse-demo-mode') !== 'off')
-
-  useEffect(() => {
-    localStorage.setItem('parkpulse-demo-mode', demoMode ? 'on' : 'off')
-  }, [demoMode])
 
   useEffect(() => {
     const clockTimer = window.setInterval(() => setNow(new Date()), 1000)
@@ -56,14 +51,14 @@ function App() {
     const initialize = async () => {
       await new DatabaseSeedService().seedIfEmpty()
       await refresh()
-      if (demoMode) simulation.start(refresh, (reason) => {
-        if (!cancelled) setSimulationError(reason instanceof Error ? `Demo Mode: ${reason.message}` : 'Demo Mode could not persist telemetry.')
+      simulation.start(refresh, (reason) => {
+        if (!cancelled) setSimulationError(reason instanceof Error ? reason.message : 'Unable to persist telemetry.')
       })
     }
     void initialize().catch((reason) => setError(reason instanceof Error ? reason.message : 'Unable to initialize Fabric SQL.'))
     const dataTimer = window.setInterval(refresh, 30_000)
     return () => { cancelled = true; simulation.stop(); window.clearInterval(dataTimer) }
-  }, [demoMode, isAuthenticated])
+  }, [isAuthenticated])
 
   if (authLoading) return <div className="loading-state"><i/><strong>Establishing Fabric identity</strong></div>
   if (!isAuthenticated) return <AuthPage/>
@@ -75,7 +70,7 @@ function App() {
   }[activeScreen]
 
   const visibleError = error || simulationError
-  return <div className="app-shell"><Sidebar active={activeScreen} onChange={setActiveScreen}/><main className="app-main"><Header title={titles[activeScreen]} weather={data?.weather} refreshedAt={data?.lastSuccessfulRefresh} now={now} demoMode={demoMode} onDemoModeChange={setDemoMode}/>{visibleError ? <div className="error-state">{visibleError}</div> : data ? screen : <div className="loading-state"><i/><strong>Querying Fabric SQL operational tables</strong><span>Generated APIs · repositories · persisted telemetry</span></div>}</main></div>
+  return <div className="app-shell"><Sidebar active={activeScreen} onChange={setActiveScreen}/><main className="app-main"><Header title={titles[activeScreen]} weather={data?.weather} refreshedAt={data?.lastSuccessfulRefresh} now={now}/>{visibleError ? <div className="error-state">{visibleError}</div> : data ? screen : <div className="loading-state"><i/><strong>Querying Fabric SQL operational tables</strong><span>Generated APIs · repositories · persisted telemetry</span></div>}</main></div>
 }
 
 export default App
