@@ -48,11 +48,12 @@ describe('operations assistant responses', () => {
 })
 
 describe('AIAssistant', () => {
-  it('shows first-time guidance, SQL KPIs, summary content, and all suggested questions', () => {
+  it('shows a chatbot-only first-time experience and all suggested questions', () => {
     render(<AIAssistant data={data}/>)
 
     expect(screen.getByRole('heading', { name: 'Ask about current operations' })).toBeInTheDocument()
-    expect(screen.getByText('Summit Run: Drive vibration exceeded the operating threshold.')).toBeInTheDocument()
+    expect(screen.queryByText('Operations snapshot')).not.toBeInTheDocument()
+    expect(screen.queryByText('Current priorities')).not.toBeInTheDocument()
     expect(screen.getByText('Which rides are most at risk today?')).toBeInTheDocument()
     expect(screen.getByText('Show current operational incidents.')).toBeInTheDocument()
     expect(screen.getByText('Which park area has the highest wait times?')).toBeInTheDocument()

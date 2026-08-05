@@ -1,5 +1,5 @@
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
-import { AlertTriangle, Bot, CloudSun, LoaderCircle, Send, Sparkles, Users, User, Wrench } from 'lucide-react'
+import { FormEvent, useEffect, useRef, useState } from 'react'
+import { AlertTriangle, Bot, LoaderCircle, Send, Sparkles, User } from 'lucide-react'
 import { getOperationsAssistantResponse } from '../services/operationsAssistantService'
 import type { AssistantMessage, OperationsData } from '../types/operations'
 import { formatTime } from '../utils/dateTime'
@@ -12,29 +12,12 @@ const suggestedQuestions = [
   'Recommend actions based on weather conditions.',
 ]
 
-const summaryItems = (data: OperationsData) => {
-  const highestRisk = [...data.rideTelemetry].sort((left, right) => right.predictedFailureRisk - left.predictedFailureRisk)[0]
-  const busiestZone = [...data.crowdZones].sort((left, right) => right.pressureScore - left.pressureScore)[0]
-  const maintenanceInsight = data.insights.find((insight) => insight.category === 'maintenance')
-  const crowdInsight = data.insights.find((insight) => insight.category === 'crowd')
-  const weatherInsight = data.insights.find((insight) => insight.category === 'weather')
-  const criticalAlert = data.alerts.find((alert) => (alert.category === 'ride' || alert.category === 'maintenance') && (alert.severity === 'critical' || alert.severity === 'high'))
-
-  return [
-    { key: 'alert', icon: AlertTriangle, title: 'Critical ride alerts', tone: 'critical', text: criticalAlert ? `${criticalAlert.location}: ${criticalAlert.message}` : 'No high or critical ride alerts are active.' },
-    { key: 'maintenance', icon: Wrench, title: 'Maintenance', tone: 'warning', text: maintenanceInsight?.recommendation ?? (highestRisk ? `${highestRisk.rideName} leads risk at ${highestRisk.predictedFailureRisk}%. ${highestRisk.recommendedAction}` : 'No maintenance telemetry is available.') },
-    { key: 'crowd', icon: Users, title: 'Crowd management', tone: 'information', text: crowdInsight?.recommendation ?? (busiestZone ? `${busiestZone.name} leads crowd pressure at ${busiestZone.pressureScore}/100.` : 'No crowd-zone data is available.') },
-    { key: 'weather', icon: CloudSun, title: 'Weather advisory', tone: 'neutral', text: weatherInsight?.recommendation ?? (data.weatherAvailable ? `${Math.round(data.weather.temperature)}°C with ${data.weather.precipitationProbability}% precipitation probability and ${Math.round(data.weather.windSpeed)} km/h wind.` : 'No weather snapshot is currently available in Fabric SQL.') },
-  ]
-}
-
 export function AIAssistant({ data }: { data: OperationsData }) {
   const [input, setInput] = useState('')
   const [messages, setMessages] = useState<AssistantMessage[]>([])
   const [isResponding, setIsResponding] = useState(false)
   const [error, setError] = useState('')
   const messagesEnd = useRef<HTMLDivElement>(null)
-  const summaries = useMemo(() => summaryItems(data), [data])
 
   useEffect(() => {
     messagesEnd.current?.scrollIntoView?.({ behavior: 'smooth', block: 'nearest' })
@@ -64,15 +47,6 @@ export function AIAssistant({ data }: { data: OperationsData }) {
   }
 
   return <div className="assistant-screen">
-    <aside className="assistant-context">
-      <div className="assistant-context-heading"><Sparkles/><div><span>FABRIC SQL CONTEXT</span><h2>Operations snapshot</h2></div></div>
-      <p>Answers use the latest repository snapshot and persisted AI insights. No chat content is stored.</p>
-      <div className="assistant-kpis"><div><strong>{data.rides.length}</strong><span>rides</span></div><div><strong>{data.washrooms.length}</strong><span>facilities</span></div><div><strong>{data.alerts.length}</strong><span>active alerts</span></div><div><strong>{data.insights.length}</strong><span>AI insights</span></div></div>
-      <section className="operations-summary" aria-labelledby="operations-summary-title">
-        <header><span>AI OPERATIONS SUMMARY</span><h3 id="operations-summary-title">Current priorities</h3></header>
-        <div>{summaries.map((item) => <article className={item.tone} key={item.key}><item.icon/><div><strong>{item.title}</strong><p>{item.text}</p></div></article>)}</div>
-      </section>
-    </aside>
     <section className="chat-panel" aria-label="Operations assistant chat">
       <header><Bot/><div><strong>Operations Assistant</strong><small><i/>Fabric SQL snapshot connected</small></div></header>
       <div className="messages" aria-live="polite">
