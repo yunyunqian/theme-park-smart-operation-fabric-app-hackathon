@@ -48,17 +48,17 @@ describe('operations assistant responses', () => {
 })
 
 describe('AIAssistant', () => {
-  it('shows a chatbot-only first-time experience and all suggested questions', () => {
+  it('shows the Copilot rail, connected context, greeting, and suggested questions', () => {
     render(<AIAssistant data={data}/>)
 
-    expect(screen.getByRole('heading', { name: 'Ask about current operations' })).toBeInTheDocument()
-    expect(screen.queryByText('Operations snapshot')).not.toBeInTheDocument()
-    expect(screen.queryByText('Current priorities')).not.toBeInTheDocument()
-    expect(screen.getByText('Which rides are most at risk today?')).toBeInTheDocument()
-    expect(screen.getByText('Show current operational incidents.')).toBeInTheDocument()
-    expect(screen.getByText('Which park area has the highest wait times?')).toBeInTheDocument()
-    expect(screen.getByText('What maintenance activities are scheduled for today?')).toBeInTheDocument()
-    expect(screen.getByText('Recommend actions based on weather conditions.')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Fabric Copilot Pattern' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Context Connected' })).toBeInTheDocument()
+    expect(screen.getByText(/I'm ready to summarize/)).toBeInTheDocument()
+    expect(screen.getByText('Which ride has the highest wait time?')).toBeInTheDocument()
+    expect(screen.getByText('Which attraction has the highest failure risk?')).toBeInTheDocument()
+    expect(screen.getByText('Which park is most congested?')).toBeInTheDocument()
+    expect(screen.getByText('Which facility needs cleaning next?')).toBeInTheDocument()
+    expect(screen.getByText('What should the operations manager focus on now?')).toBeInTheDocument()
   })
 
   it('guards empty input and displays a grounded response', async () => {
@@ -75,12 +75,54 @@ describe('AIAssistant', () => {
     expect(input).toHaveValue('')
   })
 
+  it('uses Shift+Enter for a new line and Enter to submit', async () => {
+    const user = userEvent.setup()
+    render(<AIAssistant data={data}/>)
+    const input = screen.getByLabelText('Ask about current resort operations')
+
+    await user.type(input, 'Current status{Shift>}{Enter}{/Shift}and priority')
+    expect(input).toHaveValue('Current status\nand priority')
+    await user.keyboard('{Enter}')
+
+    expect(await screen.findByText('Current status and priority')).toBeInTheDocument()
+    expect(input).toHaveValue('')
+  })
+
+  it('copies responses and exposes suggested follow-up questions', async () => {
+    const user = userEvent.setup()
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
+    render(<AIAssistant data={data}/>)
+
+    await user.click(screen.getByRole('button', { name: 'Which ride has the highest wait time?' }))
+    expect(await screen.findByText('Suggested follow-ups')).toBeInTheDocument()
+    const copyButtons = screen.getAllByRole('button', { name: 'Copy response' })
+    await user.click(copyButtons.at(-1)!)
+
+    expect(writeText).toHaveBeenCalledWith(expect.stringContaining('70 minutes'))
+    expect(screen.getByText('Copied')).toBeInTheDocument()
+  })
+
+  it('clears chat and starts a fresh conversation', async () => {
+    const user = userEvent.setup()
+    render(<AIAssistant data={data}/>)
+
+    await user.click(screen.getByRole('button', { name: 'Which ride has the highest wait time?' }))
+    expect(await screen.findByText(/70 minutes/)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Clear chat' }))
+    expect(screen.getByRole('heading', { name: 'Start a new conversation' })).toBeInTheDocument()
+    expect(screen.queryByText(/70 minutes/)).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Start conversation' }))
+    expect(screen.getByText(/I'm ready to summarize/)).toBeInTheDocument()
+  })
+
   it.each([
-    ['Which rides are most at risk today?', 'highest current failure risk'],
-    ['Show current operational incidents.', 'active incident'],
-    ['Which park area has the highest wait times?', '70 minutes'],
-    ['What maintenance activities are scheduled for today?', 'scheduled today'],
-    ['Recommend actions based on weather conditions.', 'wet-weather'],
+    ['Which ride has the highest wait time?', '70 minutes'],
+    ['Which attraction has the highest failure risk?', 'highest current failure risk'],
+    ['Which park is most congested?', 'highest crowd pressure'],
+    ['Which facility needs cleaning next?', 'highest cleaning priority'],
+    ['What should the operations manager focus on now?', 'Inspection recommended'],
   ])('submits suggested question: %s', async (question, expected) => {
     const user = userEvent.setup()
     render(<AIAssistant data={data}/>)
@@ -96,7 +138,7 @@ describe('AIAssistant', () => {
 
     fireEvent.change(screen.getByLabelText('Ask about current resort operations'), { target: { value: 'Show incidents' } })
     fireEvent.click(screen.getByRole('button', { name: 'Send question' }))
-    expect(screen.getByText('Analyzing the latest Fabric SQL snapshot...')).toBeInTheDocument()
+    expect(screen.getByText('Analyzing the latest Fabric SQL snapshot')).toBeInTheDocument()
 
     rejectResponse(new Error('Unavailable'))
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('temporarily unavailable'))
