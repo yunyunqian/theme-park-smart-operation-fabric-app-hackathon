@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import 'leaflet/dist/leaflet.css'
 import './App.css'
-import { AIAssistant } from './components/AIAssistant'
 import { AuthPage } from './components/AuthPage'
 import { CrowdHeatMap } from './components/CrowdHeatMap'
 import { Header } from './components/Header'
@@ -15,6 +14,8 @@ import { DatabaseSeedService } from './services/databaseSeedService'
 import { DatabaseSimulationService } from './services/databaseSimulationService'
 import { OperationsService } from './services/operationsService'
 import type { OperationsData, ScreenId } from './types/operations'
+
+const AIAssistant = lazy(() => import('./components/AIAssistant').then((module) => ({ default: module.AIAssistant })))
 
 const titles: Record<ScreenId, string> = {
   operations: 'Smart operations', crowd: 'Crowd Heat Map', rides: 'Ride Performance & Wait Times',
@@ -70,7 +71,7 @@ function App() {
   const screen = data && {
     operations: <OperationsCommandCenter data={data} onNavigate={setActiveScreen}/>, crowd: <CrowdHeatMap data={data}/>,
     rides: <RidePerformance data={data}/>, washrooms: <WashroomIntelligence data={data}/>,
-    maintenance: <PredictiveMaintenance data={data}/>, assistant: <AIAssistant data={data}/>,
+    maintenance: <PredictiveMaintenance data={data}/>, assistant: <Suspense fallback={<div className="loading-state"><i/><strong>Loading Operations Assistant</strong></div>}><AIAssistant data={data}/></Suspense>,
   }[activeScreen]
 
   const visibleError = error || simulationError

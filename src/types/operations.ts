@@ -146,6 +146,7 @@ export interface OperationsData {
   crowdZones: CrowdZone[]
   alerts: OperationsAlert[]
   insights: Array<{ id: string; category: string; severity: RiskLevel; title: string; description: string; relatedScreen: ScreenId; relatedEntityId?: string; recommendation: string; createdTime: string }>
+  weatherAvailable: boolean
   lastSuccessfulRefresh: string
   waitTimeSource: 'Fabric SQL'
 }

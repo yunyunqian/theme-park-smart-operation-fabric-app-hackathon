@@ -10,7 +10,6 @@ export class OperationsService {
     const [parks, lands, rides, rideTelemetry, washrooms, washroomTelemetry, crowdZones, alerts, insights, assets, weather] = await Promise.all([
       this.database.getParks(), this.database.getLands(), this.database.getRides(), this.database.getRideTelemetry(), this.database.getWashrooms(), this.database.getWashroomTelemetry(), this.database.getCrowdZones(), this.database.getAlerts(), this.database.getInsights(), this.database.getMaintenanceAssets(), this.database.getWeather(),
     ]);
-    if (!parks.length) throw new Error('Operational database has not been seeded.');
     const parkById = new Map(parks.map((park) => [park.id, park]));
     const landById = new Map(lands.map((land) => [land.id, land]));
     const ridesView: RideWaitTime[] = rides.map((ride) => ({
@@ -45,6 +44,7 @@ export class OperationsService {
       crowdZones: crowdZones.map((zone) => ({ id: zone.id, name: zone.name, parkId: zone.parkId, waitTimeNormalized: zone.crowdScore, simulatedTraffic: zone.crowdScore, weatherImpact: 0, pressureScore: zone.crowdScore })),
       alerts: alertsView,
       insights: insights.map((insight) => ({ id: insight.id, category: insight.category, severity: insight.severity, title: insight.title, description: insight.description, relatedScreen: insight.relatedScreen as ScreenId, relatedEntityId: insight.relatedEntityId, recommendation: insight.recommendation, createdTime: iso(insight.createdTime) })),
+      weatherAvailable: Boolean(weather),
       lastSuccessfulRefresh: new Date().toISOString(),
       waitTimeSource: 'Fabric SQL',
     };
