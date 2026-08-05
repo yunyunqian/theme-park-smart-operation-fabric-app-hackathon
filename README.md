@@ -71,29 +71,43 @@ Together, the screens move from venue-wide awareness to domain-specific diagnosi
 
 ## Screenshots
 
-### 1. Live Resort Digital Twin
+The screenshots below show the latest deployed desktop experience. Values marked **SIM** are point-in-time demonstration data and may differ from the current live application state.
+
+### 1. Smart Operations Digital Twin
 
 ![Live Resort Digital Twin](docs/screenshots/01-live-resort-digital-twin.png)
+
+Resort-wide command center showing park coverage, waits, ride availability, alerts, an interactive operational map, and the AI operations summary.
 
 ### 2. Crowd Heat Map
 
 ![Crowd Heat Map](docs/screenshots/02-crowd-heat-map.png)
 
-### 3. Ride Performance and Wait Times
+Geospatial crowd-pressure view comparing all four parks with the selected zone's waits, attraction availability, temperature, and operational health.
+
+### 3. Ride Performance
 
 ![Ride Performance and Wait Times](docs/screenshots/03-ride-performance.png)
+
+Park-level wait comparison, longest-wait ranking, and attraction status table using the simulated fallback snapshot shown in the capture.
 
 ### 4. Washroom Intelligence
 
 ![Washroom Intelligence](docs/screenshots/04-washroom-intelligence.png)
 
-### 5. Predictive Maintenance Dashboard
+Demand-aware servicing view highlighting urgent facilities, occupancy, supply levels, cleaning recency, and assigned operators.
+
+### 5. Predictive Maintenance
 
 ![Predictive Maintenance Dashboard](docs/screenshots/05-predictive-maintenance.png)
 
-### 6. AI Operations Assistant
+Risk-ranked asset telemetry with fleet health, predicted failure risk, remaining useful life, and recommended maintenance windows.
+
+### 6. Operations Assistant
 
 ![AI Operations Assistant](docs/screenshots/06-ai-operations-assistant.png)
+
+Fabric Copilot interaction pattern answering a supported operational question from the connected simulated snapshot and recommending the next action.
 
 ## Business Value
 
