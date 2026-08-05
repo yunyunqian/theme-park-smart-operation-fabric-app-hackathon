@@ -6,7 +6,7 @@ A reusable Fabric App that unifies venue operations, guest flow, facilities inte
 
 ## Project Summary
 
-ParkPulse AI helps large-venue operations teams move from reactive monitoring to proactive decision-making. The app combines a live digital twin map, crowd intelligence, facilities monitoring, predictive maintenance scoring, and data-grounded operational recommendations in one Microsoft Fabric App. Walt Disney World is the demonstration scenario, but the architecture is designed for airports, stadiums, resorts, universities, smart campuses, entertainment venues, and convention centers.
+ParkPulse AI helps large-venue operations teams move from reactive monitoring to proactive decision-making. It brings venue state, guest-flow pressure, facilities telemetry, maintenance risk, and operational recommendations into one Microsoft Fabric App. Walt Disney World provides the synthetic demonstration scenario for the reusable venue-operations pattern below.
 
 The platform pattern applies to:
 
@@ -98,8 +98,6 @@ Together, the screens move from venue-wide awareness to domain-specific diagnosi
 ### 7. AI Insight Deep Link Navigation
 
 ![AI Insight Deep Link Navigation](docs/screenshots/07-ai-insight-deep-link.png)
-
-> If screenshots are missing, create the `docs/screenshots` folder and add these images before final submission.
 
 ## Business Value
 
@@ -443,42 +441,6 @@ This feedback is based on concrete implementation and deployment work rather tha
 - The automated test suite does not yet cover the core repository, simulation, scoring, and screen workflows.
 - Operational thresholds, map coordinates, labels, and seed records remain demonstration-specific.
 
-## Two-Minute Demo Script
-
-### 0:00-0:20 - Establish the Problem
-
-"Large venues operate guest zones, facilities, service assets, and maintenance teams across disconnected systems. ParkPulse AI brings those signals into one Fabric-powered operational twin so teams can detect pressure before it becomes guest impact."
-
-Show the **Live Resort Digital Twin** and identify one elevated crowd zone, one long wait, and one operational alert.
-
-### 0:20-0:45 - Explain the Fabric Foundation
-
-"Every screen reads persisted operational state through Rayfin-generated APIs backed by Fabric SQL. The React UI uses services, provider interfaces, and repositories, so the same pattern can support airports, stadiums, campuses, and resorts."
-
-Briefly point to the SQL-backed status and latest refresh time.
-
-### 0:45-1:10 - Diagnose an Operational Issue
-
-Open **Predictive Maintenance**. Select the highest-risk asset and show motor temperature, vibration, cycle count, maintenance history, and the recommended action.
-
-State clearly that the current score is an illustrative heuristic and describe how historical data in OneLake could support a validated model.
-
-### 1:10-1:30 - Coordinate Facilities and Guest Flow
-
-Open **Washroom Intelligence** to show demand-aware cleaning priority and supply levels. Then open **Crowd Heat Map** to compare pressure across zones.
-
-Explain that both teams work from one Fabric data foundation instead of separate dashboards.
-
-### 1:30-1:45 - Ask the Operations Assistant
-
-Ask: "What should the operations manager focus on now?" Show a response grounded in current SQL records and disclose that the prototype uses deterministic operational question handling rather than a generative model.
-
-### 1:45-2:00 - Close on Impact and Reuse
-
-"ParkPulse AI is a reusable venue-operations pattern: venue, zones, assets, facilities, telemetry, alerts, insights, and actions. Fabric supplies the governed data foundation today and a direct path to Eventstream, Eventhouse, KQL, Activator, OneLake, and model-backed intelligence next."
-
-Close with the illustrative KPI framework: faster detection, prioritized response, lower unplanned downtime, and improved guest flow.
-
 ## Troubleshooting
 
 ### The deployed app remains on the sign-in page
@@ -532,21 +494,6 @@ The project goes beyond a single dashboard by combining a geospatial command cen
 ### Product Feedback Quality
 
 The project documents specific feedback from implementation: background execution, transactional commands, generated API diagnostics, SSO testing, deployment portability, latest-record queries, relationship integrity, and template lifecycle. Each item maps to a concrete limitation encountered while building and deploying the application.
-
-## Submission Checklist
-
-- [x] Fabric App deployed with Fabric SSO
-- [x] Fabric SQL schema and generated APIs deployed
-- [x] Idempotent demonstration seed available
-- [x] Six SQL-backed operational screens
-- [x] Repository, provider, and service architecture
-- [x] Architecture, security, test, limitations, and troubleshooting documentation
-- [x] Reusability and adaptation guidance
-- [x] AI and real-time capability disclosure
-- [x] Two-minute demo script
-- [ ] Add final screenshots to `docs/screenshots/`
-- [ ] Record the final two-minute demonstration
-- [ ] Verify the demo account and Fabric workspace immediately before judging
 
 ## Production Architecture Improvements Already Demonstrated
 
