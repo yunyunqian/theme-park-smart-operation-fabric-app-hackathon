@@ -79,11 +79,11 @@ The screenshots below show the latest deployed desktop experience. Values marked
 
 Resort-wide command center showing park coverage, waits, ride availability, alerts, an interactive operational map, and the AI operations summary.
 
-### 2. Crowd Heat Map
+### 2. Crowd Pressure Network
 
-![Crowd Heat Map](docs/screenshots/02-crowd-heat-map.png)
+![Crowd Pressure Network](docs/screenshots/02-crowd-heat-map.png)
 
-Geospatial crowd-pressure view comparing all four parks with the selected zone's waits, attraction availability, temperature, and operational health.
+Database-sourced crowd-pressure view comparing persisted zone scores across all four parks, with park, data-state, and pressure-level filters plus a ranked list of pressure leaders.
 
 ### 3. Ride Performance
 
