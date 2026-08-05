@@ -69,6 +69,10 @@ ParkPulse AI is a reusable digital twin operations platform for complex venues. 
 
 Together, the screens move from venue-wide awareness to domain-specific diagnosis. The digital twin establishes context, analytical screens expose the drivers, and the assistant summarizes the most important current facts.
 
+## Demo Video
+
+[Watch the ParkPulse AI demo video](docs/videos/ParkPulseAI.mp4)
+
 ## Screenshots
 
 The screenshots below show the latest deployed desktop experience. Values marked **SIM** are point-in-time demonstration data and may differ from the current live application state.
