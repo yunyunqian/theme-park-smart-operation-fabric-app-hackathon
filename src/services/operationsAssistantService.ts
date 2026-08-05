@@ -42,14 +42,11 @@ export async function getOperationsAssistantResponse(question: string, data: Ope
   }
 
   if (includesAny(query, ['weather', 'rain', 'wind', 'temperature', 'storm'])) {
-    if (!data.weatherAvailable) return 'No weather snapshot is currently available in Fabric SQL. Continue standard monitoring and verify the weather ingestion source.'
+    if (!data.weather) return 'No weather snapshot is currently available in Fabric SQL. Continue standard monitoring and verify the weather ingestion source.'
     const { precipitationProbability, windSpeed, temperature } = data.weather
-    const actions: string[] = []
-    if (precipitationProbability >= 60) actions.push('prepare wet-weather queue and guest-routing procedures')
-    if (windSpeed >= 30) actions.push('review wind-sensitive attraction thresholds')
-    if (temperature >= 32) actions.push('increase hydration messaging and heat monitoring')
-    if (!actions.length) actions.push('continue standard weather monitoring')
-    return `The latest Fabric SQL weather snapshot shows ${Math.round(temperature)}°C, ${precipitationProbability}% precipitation probability, and ${Math.round(windSpeed)} km/h wind. Recommended action: ${actions.join('; ')}.`
+    const weatherAlert = data.alerts.find((alert) => alert.category === 'weather')
+    const action = weatherAlert ? ` Active weather alert: ${weatherAlert.message}` : ' No active weather alert is stored in Fabric SQL.'
+    return `The latest Fabric SQL weather snapshot shows ${Math.round(temperature)}°C, ${precipitationProbability}% precipitation probability, and ${Math.round(windSpeed)} km/h wind.${action}`
   }
 
   if (includesAny(query, ['crowd', 'congested', 'pressure', 'busy'])) {

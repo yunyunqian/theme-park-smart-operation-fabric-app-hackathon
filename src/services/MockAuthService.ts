@@ -4,19 +4,15 @@ import type { AppSchema } from '../../rayfin/data/schema';
 
 import { type AuthUser, type IAuthService, toAuthUser } from './IAuthService';
 
-// Local-dev fixture credentials. The bundled local backend ships without
-// Fabric/Entra, so this auth service signs in with a shared dev account.
-// These values only ever reach a developer's local machine — never use
-// them in production.
-const MOCK_EMAIL = 'dev@contoso.com';
-const MOCK_PASSWORD = 'LocalDev!Pass123';
+const localEmail = import.meta.env.VITE_LOCAL_AUTH_EMAIL;
+const localPassword = import.meta.env.VITE_LOCAL_AUTH_PASSWORD;
 
 /**
  * Local-development auth service. Used when the API URL targets localhost.
  *
- * Signs into the bundled local backend with a fixed email/password — no
- * Fabric/Entra wiring required. If the dev account does not exist yet on
- * the local backend, it is created on first sign-in.
+ * Signs into the bundled local backend with credentials supplied through
+ * local environment variables. If the account does not exist yet on the
+ * local backend, it is created on first sign-in.
  */
 export class MockAuthService implements IAuthService {
   readonly fabricAuthEnabled = false;
@@ -25,18 +21,19 @@ export class MockAuthService implements IAuthService {
 
   async signIn(): Promise<AuthUser> {
     const auth = this.client.auth;
+    if (!localEmail || !localPassword) throw new Error('Local authentication requires VITE_LOCAL_AUTH_EMAIL and VITE_LOCAL_AUTH_PASSWORD.');
 
     // Try sign-in. If the credentials are rejected (also how the backend
     // reports "user does not exist") create the account and retry. Other
     // errors (network, server, …) propagate unchanged.
     try {
-      await auth.signIn({ email: MOCK_EMAIL, password: MOCK_PASSWORD });
+      await auth.signIn({ email: localEmail, password: localPassword });
     } catch (err) {
       if (!(err instanceof AuthError) || err.code !== 'INVALID_GRANT') {
         throw err;
       }
-      await auth.signUp({ email: MOCK_EMAIL, password: MOCK_PASSWORD });
-      await auth.signIn({ email: MOCK_EMAIL, password: MOCK_PASSWORD });
+      await auth.signUp({ email: localEmail, password: localPassword });
+      await auth.signIn({ email: localEmail, password: localPassword });
     }
 
     const session = auth.getSession();

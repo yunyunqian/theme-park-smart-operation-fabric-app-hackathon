@@ -9,18 +9,17 @@ import type { OperationsData } from '../types/operations'
 const now = new Date().toISOString()
 
 const data: OperationsData = {
-  parks: [{ id: 'park-1', name: 'Adventure Park', shortName: 'AP', latitude: 0, longitude: 0, color: '#123456', status: 'Busy', averageWait: 42, longestWait: 70, busiestAttraction: 'Summit Run', openAttractions: 2, closedAttractions: 0, guestDensity: 78, temperature: 33, operationalHealth: 88, lastUpdated: now }],
+  parks: [{ id: 'park-1', name: 'Adventure Park', shortName: 'AP', latitude: 0, longitude: 0, color: '#123456', status: 'Busy', averageWait: 42, longestWait: 70, busiestAttraction: 'Summit Run', openAttractions: 2, closedAttractions: 0, guestDensity: 78, operationalHealth: 88, lastUpdated: now }],
   rides: [
     { id: 'ride-1', name: 'Summit Run', parkId: 'park-1', park: 'Adventure Park', land: 'North Ridge', latitude: 0, longitude: 0, waitTime: 70, isOpen: true, lastUpdated: now, trend: 'up' },
     { id: 'ride-2', name: 'River Loop', parkId: 'park-1', park: 'Adventure Park', land: 'River District', latitude: 0, longitude: 0, waitTime: 20, isOpen: true, lastUpdated: now, trend: 'stable' },
   ],
-  weather: { temperature: 33, apparentTemperature: 35, humidity: 70, precipitationProbability: 65, windSpeed: 12, uvIndex: 0, weatherCode: 2, observedAt: now, source: 'database' },
+  weather: { temperature: 33, humidity: 70, precipitationProbability: 65, windSpeed: 12, weatherCode: 2, observedAt: now, source: 'database' },
   washrooms: [{ id: 'room-1', name: 'North Ridge Facility', park: 'Adventure Park', land: 'North Ridge', latitude: 0, longitude: 0, type: 'Guest', capacity: 20, accessible: true, telemetry: { washroomId: 'room-1', occupancy: 82, trafficLast15Min: 35, lastCleaned: now, assignedCastMember: 'Facilities North', soapLevel: 60, paperTowelLevel: 50, toiletPaperLevel: 70, maintenanceIssueCount: 0, cleaningUrgency: 86, nextCleaningWindow: now } }],
-  rideTelemetry: [{ rideId: 'ride-1', rideName: 'Summit Run', park: 'Adventure Park', land: 'North Ridge', assetType: 'Coaster', currentStatus: 'Open', operatingHoursToday: 8, cycleCountToday: 460, motorTemperature: 79, vibrationScore: 72, downtimeFrequency: 2, faultCode: null, lastInspectionDate: now, nextPlannedMaintenance: now, predictedFailureRisk: 81, recommendedAction: 'Inspect the drive assembly.' }],
-  crowdZones: [{ id: 'zone-1', name: 'North Ridge', parkId: 'park-1', waitTimeNormalized: 88, simulatedTraffic: 88, weatherImpact: 0, pressureScore: 88 }],
+  rideTelemetry: [{ rideId: 'ride-1', rideName: 'Summit Run', park: 'Adventure Park', land: 'North Ridge', assetType: 'Coaster', currentStatus: 'Open', cycleCountToday: 460, motorTemperature: 79, vibrationScore: 72, downtimeFrequency: 2, faultCode: null, lastInspectionDate: now, nextPlannedMaintenance: now, predictedFailureRisk: 81, recommendedAction: 'Inspect the drive assembly.' }],
+  crowdZones: [{ id: 'zone-1', name: 'North Ridge', parkId: 'park-1', pressureScore: 88 }],
   alerts: [{ id: 'alert-1', category: 'ride', severity: 'critical', message: 'Drive vibration exceeded the operating threshold.', location: 'Summit Run', createdAt: now }],
   insights: [{ id: 'insight-1', category: 'maintenance', severity: 'high', title: 'Inspection recommended', description: 'Summit Run risk is elevated.', relatedScreen: 'maintenance', recommendation: 'Inspect Summit Run before the evening peak.', createdTime: now }],
-  weatherAvailable: true,
   lastSuccessfulRefresh: now,
   waitTimeSource: 'Fabric SQL',
 }
@@ -35,11 +34,11 @@ describe('operations assistant responses', () => {
     await expect(getOperationsAssistantResponse('Show current operational incidents.', data)).resolves.toContain('Drive vibration')
     await expect(getOperationsAssistantResponse('Which park area has the highest wait times?', data)).resolves.toContain('70 minutes')
     await expect(getOperationsAssistantResponse('What maintenance activities are scheduled for today?', data)).resolves.toContain('scheduled today')
-    await expect(getOperationsAssistantResponse('Recommend actions based on weather conditions.', data)).resolves.toContain('wet-weather')
+    await expect(getOperationsAssistantResponse('Recommend actions based on weather conditions.', data)).resolves.toContain('No active weather alert')
   })
 
   it('returns friendly domain-specific empty states', async () => {
-    const emptyData = { ...data, rides: [], rideTelemetry: [], alerts: [], crowdZones: [], washrooms: [], insights: [], weatherAvailable: false }
+    const emptyData = { ...data, rides: [], rideTelemetry: [], alerts: [], crowdZones: [], washrooms: [], insights: [], weather: undefined }
     await expect(getOperationsAssistantResponse('Which rides are most at risk today?', emptyData)).resolves.toContain('No ride telemetry')
     await expect(getOperationsAssistantResponse('Show current operational incidents.', emptyData)).resolves.toContain('No active operational incidents')
     await expect(getOperationsAssistantResponse('Which park area has the highest wait times?', emptyData)).resolves.toContain('No ride wait-time records')

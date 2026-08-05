@@ -9,11 +9,12 @@ import { HeatMapLayer } from './HeatMapLayer'
 import { ParkOverlay } from './ParkOverlay'
 import { WashroomMarker } from './WashroomMarker'
 
-function MapFly({ selected }: { selected?: ParkOperationsSummary }) {
+function MapFly({ selected, parks }: { selected?: ParkOperationsSummary; parks: ParkOperationsSummary[] }) {
   const map = useMap()
   useEffect(() => {
-    map.flyTo(selected ? [selected.latitude, selected.longitude] : [28.385, -81.5707], selected ? 15 : 13, { duration: 1.2 })
-  }, [map, selected])
+    if (selected) map.flyTo([selected.latitude, selected.longitude], 15, { duration: 1.2 })
+    else map.fitBounds(parks.map((park) => [park.latitude, park.longitude]), { padding: [40, 40], maxZoom: 13 })
+  }, [map, parks, selected])
   return null
 }
 
@@ -24,10 +25,15 @@ export function ResortMap({ data }: { data: OperationsData }) {
   const [showHeat, setShowHeat] = useState(true)
   const active = hovered ?? selected
   const selectedRides = selected ? data.rides.filter((ride) => ride.parkId === selected.id) : []
+  if (!data.parks.length) return <div className="resort-map-wrap"><div className="loading-state"><strong>No park coordinates are available in Fabric SQL</strong></div></div>
+  const center: [number, number] = [
+    data.parks.reduce((sum, park) => sum + park.latitude, 0) / data.parks.length,
+    data.parks.reduce((sum, park) => sum + park.longitude, 0) / data.parks.length,
+  ]
   return <div className="resort-map-wrap">
-    <MapContainer center={[28.385, -81.5707]} zoom={13} minZoom={12} maxZoom={16} maxBounds={[[28.32, -81.63], [28.44, -81.52]]} maxBoundsViscosity={1} zoomControl={false} attributionControl={false}>
+    <MapContainer center={center} zoom={13} minZoom={2} maxZoom={16} zoomControl={false} attributionControl={false}>
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
-      {showHeat && <HeatMapLayer parks={data.parks}/>}<MapFly selected={selected}/>
+      {showHeat && <HeatMapLayer parks={data.parks}/>}<MapFly selected={selected} parks={data.parks}/>
       {!selected && data.parks.map((park) => <ParkOverlay key={park.id} park={park} onHover={setHovered} onSelect={setSelected}/>) }
       {selectedRides.map((ride) => <AttractionMarker key={ride.id} ride={ride} telemetry={data.rideTelemetry.find((item) => item.rideId === ride.id)}/>)}
       {selected && showWashrooms && data.washrooms.filter((room) => room.park === selected.name).map((room) => <WashroomMarker key={room.id} washroom={room}/>)}

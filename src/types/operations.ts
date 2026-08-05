@@ -35,11 +35,9 @@ export interface RideWaitTime extends Ride {
 
 export interface WeatherSnapshot {
   temperature: number
-  apparentTemperature: number
   humidity: number
   precipitationProbability: number
   windSpeed: number
-  uvIndex: number
   weatherCode: number
   observedAt: string
   source: 'database'
@@ -78,7 +76,6 @@ export interface RideTelemetry {
   land: string
   assetType: string
   currentStatus: string
-  operatingHoursToday: number
   cycleCountToday: number
   motorTemperature: number
   vibrationScore: number
@@ -111,9 +108,6 @@ export interface CrowdZone {
   id: string
   name: string
   parkId: string
-  waitTimeNormalized: number
-  simulatedTraffic: number
-  weatherImpact: number
   pressureScore: number
 }
 
@@ -132,7 +126,6 @@ export interface ParkOperationsSummary extends Park {
   openAttractions: number
   closedAttractions: number
   guestDensity: number
-  temperature: number
   operationalHealth: number
   lastUpdated: string
 }
@@ -140,13 +133,12 @@ export interface ParkOperationsSummary extends Park {
 export interface OperationsData {
   parks: ParkOperationsSummary[]
   rides: RideWaitTime[]
-  weather: WeatherSnapshot
+  weather?: WeatherSnapshot
   washrooms: Array<Washroom & { telemetry: WashroomTelemetry }>
   rideTelemetry: RideTelemetry[]
   crowdZones: CrowdZone[]
   alerts: OperationsAlert[]
   insights: Array<{ id: string; category: string; severity: RiskLevel; title: string; description: string; relatedScreen: ScreenId; relatedEntityId?: string; recommendation: string; createdTime: string }>
-  weatherAvailable: boolean
   lastSuccessfulRefresh: string
   waitTimeSource: 'Fabric SQL'
 }

@@ -89,7 +89,7 @@ Database-sourced crowd-pressure view comparing persisted zone scores across all 
 
 ![Ride Performance and Wait Times](docs/screenshots/03-ride-performance.png)
 
-Park-level wait comparison, longest-wait ranking, and attraction status table using the simulated fallback snapshot shown in the capture.
+Park-level wait comparison, longest-wait ranking, and attraction status table using the current Fabric SQL snapshot.
 
 ### 4. Washroom Intelligence
 
@@ -107,11 +107,11 @@ Risk-ranked asset telemetry with fleet health, predicted failure risk, remaining
 
 ![AI Operations Assistant](docs/screenshots/06-ai-operations-assistant.png)
 
-Fabric Copilot interaction pattern answering a supported operational question from the connected simulated snapshot and recommending the next action.
+Fabric Copilot interaction pattern answering a supported operational question from the connected Fabric SQL snapshot and persisted insights.
 
 ## Business Value
 
-The application demonstrates qualitative operational outcomes. Any values shown in Demo Mode are simulated and any KPI targets below are illustrative; they are not claims from a customer deployment.
+The application demonstrates qualitative operational outcomes. Values shown in the screenshots are demonstration records stored in Fabric SQL; they are not claims from a customer deployment.
 
 ### Guest Experience
 
@@ -204,40 +204,11 @@ Read operations cover venue locations, zones, service assets, facilities, teleme
 
 The current Rayfin builder release does not expose a supported custom TypeScript HTTP-functions authoring package. The application therefore implements business commands as a service layer over generated authenticated mutations, without raw runtime SQL or handwritten GraphQL.
 
-## Database Persistence and Seeding
+## Database Persistence and Ingestion
 
 Fabric SQL is the system of record for venue master data, current state, telemetry history, alerts, maintenance state, and persisted insight records.
 
-`DatabaseSeedService.seedIfEmpty()` is an idempotent initialization process. After Fabric authentication is established, it checks `Parks`; only an empty database is initialized. Parent records are created before dependent records through generated APIs.
-
-The initial Walt Disney World demonstration dataset includes four parks, lands, rides, washrooms, crowd zones, maintenance assets, baseline telemetry, weather, an alert, and an operational insight.
-
-If the Fabric Apps Preview generated API worker is unavailable during first deployment, an administrator can run the transactional deployment fallback after `az login`:
-
-```powershell
-npm run seed:fabric
-```
-
-The fallback uses the current Azure CLI identity to acquire an Entra token for Fabric SQL. It inserts the baseline only when `Parks` is empty, rolls back on failure, and prints operational table counts. No password or access token is stored in the repository.
-
-The checked-in script defaults currently target the demonstration Fabric SQL database. For another environment, invoke it with explicit values:
-
-```powershell
-./scripts/seed-fabric-database.ps1 `
-  -Server "<fabric-sql-server>.database.fabric.microsoft.com" `
-  -Database "<fabric-sql-database>"
-```
-
-This script is a deployment bootstrap only. Runtime reads and writes continue to use the service, provider, repository, and generated API layers.
-
-## Demo Mode
-
-The header contains a Demo Mode switch.
-
-- **On:** `DatabaseSimulationService` reads the current database state, calculates illustrative operational changes, and writes ride telemetry, washroom telemetry, crowd scores, park aggregates, maintenance risk, alerts, and insight records.
-- **Off:** no synthetic writes occur; screens continue polling SQL and wait for external producers.
-
-Demo Mode is designed for demonstration, not production ingestion. It runs in the authenticated browser session, uses heuristic scoring, and is not backed by Eventstream or a managed worker. Its writes span multiple generated API calls and are not one atomic venue-wide transaction. A production implementation should move ingestion and simulation to managed event processing and add run-level consistency, idempotency, and observability.
+The application contains no runtime seed dataset, fallback operational snapshot, or browser telemetry simulator. Rayfin provisions the schema and generated APIs; venue records must be loaded into Fabric SQL by an authorized external ingestion process or administrator. Screens poll the latest persisted state every 30 seconds. Operator commands use authenticated generated API mutations.
 
 ## Security Model
 
@@ -246,7 +217,6 @@ Demo Mode is designed for demonstration, not production ingestion. It runs in th
 - Deployed access uses Fabric brokered SSO with Microsoft Entra ID.
 - Generated data APIs require an authenticated session.
 - The publishable key is intended for client-side service identification and is not a database credential.
-- Direct SQL seeding uses the current administrator's short-lived Entra token.
 - Allowed redirect URIs are explicitly configured in `rayfin/rayfin.yml`.
 
 ### Current Prototype Boundary
@@ -298,9 +268,10 @@ Use least privilege for production. Do not give general operators deployment or 
 - Node.js supported by the installed Rayfin CLI
 - npm
 - Microsoft Fabric access for remote deployment
-- Azure CLI only when using the direct SQL seed fallback
 
 ### Install, Validate, and Run
+
+Local Rayfin authentication requires `VITE_LOCAL_AUTH_EMAIL` and `VITE_LOCAL_AUTH_PASSWORD` in the developer's uncommitted environment. Deployed Fabric Apps use brokered Entra ID SSO and do not use these values.
 
 ```bash
 npm install
@@ -316,7 +287,6 @@ npm run dev
 npx rayfin login
 npx rayfin login status
 npx rayfin up
-npm run seed:fabric
 npx rayfin up status
 ```
 
@@ -332,16 +302,13 @@ The repository currently validates:
 - ESLint rules with `npm run lint`.
 - Authentication provider initialization with Vitest and Testing Library.
 - Deployment health with `npx rayfin up status`.
-- Seed idempotency and physical row counts through the Fabric SQL seed command.
 
 The current automated suite is intentionally small and does not yet provide production-level coverage. Before template-gallery or production use, add:
 
-- Unit tests for maintenance and cleaning urgency scoring boundaries.
 - Repository contract tests for reads, mutations, ordering, and API failures.
 - Service tests for snapshot joins, missing related records, and empty states.
-- Simulation tests for idempotency, overlap prevention, partial failure, and retry behavior.
 - Component tests for every screen, filter, empty state, and business command.
-- End-to-end tests for Fabric SSO, seeding, navigation, persistence, and responsive layouts.
+- End-to-end tests for Fabric SSO, ingestion, navigation, persistence, and responsive layouts.
 - Load tests for telemetry volume, concurrent users, and Fabric capacity sizing.
 - Accessibility checks using keyboard navigation and automated WCAG tooling.
 
@@ -369,27 +336,27 @@ The provider interfaces (`IDataProvider`, `ITelemetryProvider`, and `IInsightPro
 
 ### Adaptation Steps
 
-1. Replace the demonstration seed pack with venue-specific master data and coordinates.
+1. Ingest venue-specific master data and coordinates into the Fabric SQL entities.
 2. Rename UI labels through a domain configuration layer rather than changing repository contracts.
 3. Map source systems into the common zone, asset, facility, telemetry, alert, and insight concepts.
 4. Configure venue-specific thresholds and scoring policies.
 5. Add venue and tenant identifiers plus role-based access policies.
-6. Replace browser Demo Mode with Eventstream, pipelines, or managed producers.
+6. Connect Eventstream, pipelines, or managed producers for operational ingestion.
 7. Connect operational commands to the organization's work-order, dispatch, or communication systems.
 8. Establish KPI baselines and validate recommendations against actual outcomes.
 
-The current code demonstrates the pattern but does not yet provide a no-code domain-pack installer. Generalizing entity names, labels, policies, and seed configuration is part of the template roadmap.
+The current code demonstrates the pattern but does not yet provide a no-code domain-pack installer. Generalizing entity names, labels, policies, and ingestion configuration is part of the template roadmap.
 
 ## AI and Real-Time Capability Disclosure
 
 Technical credibility matters more than an inflated feature claim. The current implementation has these boundaries:
 
 - The **AI Operations Assistant is not currently backed by a generative model**. It uses deterministic question matching, SQL-backed operational facts, and persisted `AIInsights` to answer a supported set of venue questions.
-- The **predictive maintenance score is a transparent heuristic**, not a trained machine-learning failure model. Production use requires historical failures, model validation, explainability, and accuracy monitoring.
-- The application is **not currently connected to Fabric Eventstream, Eventhouse, a KQL Database, or Activator**. Demo Mode writes synthetic records through generated APIs from the browser.
+- Persisted maintenance risk scores are treated as source data, not recalculated by the browser. Production use requires a validated upstream scoring or model pipeline with explainability and accuracy monitoring.
+- The application is **not currently connected to Fabric Eventstream, Eventhouse, a KQL Database, or Activator**. Operational records must be supplied by an external ingestion process.
 - "Live" in the prototype means the latest persisted Fabric SQL state refreshed on a polling interval; it does not mean hard real-time or safety-critical processing.
 
-These boundaries make the demo reproducible while preserving a credible path to model-backed intelligence and Fabric Real-Time Intelligence.
+These boundaries preserve a credible path to model-backed intelligence and Fabric Real-Time Intelligence without presenting future capabilities as implemented.
 
 ## Future Fabric Real-Time Intelligence Path
 
@@ -425,7 +392,7 @@ Planned enhancements include:
 
 Building ParkPulse AI surfaced actionable product feedback:
 
-1. **Background execution:** browser sessions are not a reliable host for simulation or operational processing. A documented managed-worker or scheduled-function path would improve Fabric App templates.
+1. **Background execution:** browser sessions are not a reliable host for operational processing. A documented managed-worker or scheduled-function path would improve Fabric App templates.
 2. **Transactional commands:** venue workflows often update several aggregates. Generated APIs would benefit from supported transactional business operations or custom server functions.
 3. **Generated API diagnostics:** request correlation IDs, latency metrics, worker health, and clearer timeout details would reduce troubleshooting time.
 4. **Fabric SSO testing:** a documented automated test strategy for embedded and standalone brokered authentication would improve deployment confidence.
@@ -438,18 +405,17 @@ This feedback is based on concrete implementation and deployment work rather tha
 
 ## Limitations
 
-- The Walt Disney World dataset is synthetic and used only as a recognizable demonstration scenario.
+- Demonstration records currently stored in the connected Fabric SQL database are synthetic and use a recognizable scenario.
 - Disney names and locations do not imply affiliation, endorsement, or access to Disney operational systems.
 - The assistant is deterministic rather than model-backed.
-- Maintenance and cleaning scores are illustrative heuristics, not validated production models.
+- Maintenance and cleaning scores depend on the connected upstream data source and are not validated by this application.
 - Eventstream, Eventhouse, KQL, Activator, and OneLake integrations are architectural next steps, not current runtime dependencies.
-- Browser Demo Mode is non-atomic across its generated API writes and should not be used as a production simulator.
 - The current authorization model does not implement venue-level or persona-level least privilege.
 - Current repositories load complete entity collections and telemetry history; pagination, latest-row server queries, caching, and virtualization are required for large deployments.
 - UUID reference fields are managed by application logic; production data integrity requires stronger relationship enforcement and validation.
 - Current business command methods are not yet exposed as complete operator workflows in every screen.
-- The automated test suite does not yet cover the core repository, simulation, scoring, and screen workflows.
-- Operational thresholds, map coordinates, labels, and seed records remain demonstration-specific.
+- The automated test suite does not yet cover the core repository and every screen workflow.
+- Visual thresholds and domain labels remain application-specific.
 
 ## Troubleshooting
 
@@ -460,11 +426,11 @@ This feedback is based on concrete implementation and deployment work rather tha
 - Verify the hosting URL is listed in `allowedRedirectUris`.
 - Confirm `VITE_FABRIC_WORKSPACE_ID`, `VITE_FABRIC_ITEM_ID`, and `VITE_FABRIC_PORTAL_URL` match the deployment.
 
-### The app reports that the operational database has not been seeded
+### The operational screens are empty
 
-- Complete Fabric SSO and allow the authenticated initializer to run.
-- If generated APIs are unavailable during initialization, run `npm run seed:fabric` with the correct server and database parameters.
-- Run the seed command again to print table counts; it is idempotent when `Parks` already contains rows.
+- Confirm the user has Fabric SSO access to the generated data APIs.
+- Confirm the external ingestion process has loaded venue and telemetry records into the Fabric SQL entities.
+- Query the Fabric SQL tables or generated APIs to verify row counts and relationships.
 
 ### Generated API requests time out
 
@@ -473,13 +439,6 @@ This feedback is based on concrete implementation and deployment work rather tha
 - Confirm the data service is enabled in `rayfin/rayfin.yml`.
 - Re-run `npx rayfin up` to apply the current DAB configuration and static build.
 - Capture the visible application error and browser network response for correlation with Fabric service diagnostics.
-
-### Demo Mode does not update immediately
-
-- Confirm Demo Mode is enabled and the authenticated browser tab remains open.
-- The first cycle performs several generated API reads and writes and may exceed the nominal interval.
-- Review the persistent Demo Mode error shown by the app.
-- Do not use browser Demo Mode as proof of production real-time ingestion; use persisted SQL timestamps only as demo evidence.
 
 ### The map is blank
 
@@ -513,5 +472,5 @@ The project documents specific feedback from implementation: background executio
 - Added `IDataProvider`, `ITelemetryProvider`, and `IInsightProvider` boundaries.
 - Replaced screen-level data generators with repository-backed database snapshots.
 - Added generated API mutations for maintenance, cleaning, ride status, and alert acknowledgement workflows.
-- Added idempotent initialization and a persisted demonstration simulator.
+- Removed automatic initialization, fallback datasets, and browser-generated telemetry from the production runtime.
 - Grounded assistant responses and summary panels in the current SQL snapshot and persisted `AIInsights`.

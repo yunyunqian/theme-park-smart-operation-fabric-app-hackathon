@@ -8,5 +8,5 @@ const items: Array<{ id: ScreenId; label: string; icon: LucideIcon }> = [
 ]
 
 export function Sidebar({ active, onChange }: { active: ScreenId; onChange: (id: ScreenId) => void }) {
-  return <aside className="sidebar"><div className="brand"><span className="brand-mark">OC</span><div><strong>Operations</strong><small>Command Centre</small></div></div><nav aria-label="Command center screens">{items.map(({ id, label, icon: Icon }) => <button key={id} className={active === id ? 'active' : ''} onClick={() => onChange(id)} title={label}><Icon size={19}/><span>{label}</span></button>)}</nav><div className="fabric-status"><i/><div><strong>Fabric stream active</strong><small>12.4K events/min</small></div></div></aside>
+  return <aside className="sidebar"><div className="brand"><span className="brand-mark">OC</span><div><strong>Operations</strong><small>Command Centre</small></div></div><nav aria-label="Command center screens">{items.map(({ id, label, icon: Icon }) => <button key={id} className={active === id ? 'active' : ''} onClick={() => onChange(id)} title={label}><Icon size={19}/><span>{label}</span></button>)}</nav><div className="fabric-status"><i/><div><strong>Fabric SQL connected</strong><small>Operational tables live</small></div></div></aside>
 }

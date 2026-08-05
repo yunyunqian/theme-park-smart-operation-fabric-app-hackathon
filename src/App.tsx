@@ -10,8 +10,6 @@ import { RidePerformance } from './components/RidePerformance'
 import { Sidebar } from './components/Sidebar'
 import { WashroomIntelligence } from './components/WashroomIntelligence'
 import { useAuth } from './hooks/AuthContext'
-import { DatabaseSeedService } from './services/databaseSeedService'
-import { DatabaseSimulationService } from './services/databaseSimulationService'
 import { OperationsService } from './services/operationsService'
 import type { OperationsData, ScreenId } from './types/operations'
 
@@ -27,7 +25,6 @@ function App() {
   const [activeScreen, setActiveScreen] = useState<ScreenId>('operations')
   const [data, setData] = useState<OperationsData>()
   const [error, setError] = useState('')
-  const [simulationError, setSimulationError] = useState('')
   const [now, setNow] = useState(new Date())
 
   useEffect(() => {
@@ -39,7 +36,6 @@ function App() {
     if (!isAuthenticated) return
     let cancelled = false
     const operations = new OperationsService()
-    const simulation = new DatabaseSimulationService()
     const refresh = async () => {
       try {
         const snapshot = await operations.getSnapshot()
@@ -49,15 +45,11 @@ function App() {
       }
     }
     const initialize = async () => {
-      await new DatabaseSeedService().seedIfEmpty()
       await refresh()
-      simulation.start(refresh, (reason) => {
-        if (!cancelled) setSimulationError(reason instanceof Error ? reason.message : 'Unable to persist telemetry.')
-      })
     }
     void initialize().catch((reason) => setError(reason instanceof Error ? reason.message : 'Unable to initialize Fabric SQL.'))
     const dataTimer = window.setInterval(refresh, 30_000)
-    return () => { cancelled = true; simulation.stop(); window.clearInterval(dataTimer) }
+    return () => { cancelled = true; window.clearInterval(dataTimer) }
   }, [isAuthenticated])
 
   if (authLoading) return <div className="loading-state"><i/><strong>Establishing Fabric identity</strong></div>
@@ -69,8 +61,7 @@ function App() {
     maintenance: <PredictiveMaintenance data={data}/>, assistant: <Suspense fallback={<div className="loading-state"><i/><strong>Loading Operations Assistant</strong></div>}><AIAssistant data={data}/></Suspense>,
   }[activeScreen]
 
-  const visibleError = error || simulationError
-  return <div className="app-shell"><Sidebar active={activeScreen} onChange={setActiveScreen}/><main className="app-main"><Header title={titles[activeScreen]} weather={data?.weather} refreshedAt={data?.lastSuccessfulRefresh} now={now}/>{visibleError ? <div className="error-state">{visibleError}</div> : data ? screen : <div className="loading-state"><i/><strong>Querying Fabric SQL operational tables</strong><span>Generated APIs · repositories · persisted telemetry</span></div>}</main></div>
+  return <div className="app-shell"><Sidebar active={activeScreen} onChange={setActiveScreen}/><main className="app-main"><Header title={titles[activeScreen]} weather={data?.weather} refreshedAt={data?.lastSuccessfulRefresh} now={now}/>{error ? <div className="error-state">{error}</div> : data ? screen : <div className="loading-state"><i/><strong>Querying Fabric SQL operational tables</strong><span>Generated APIs · repositories · persisted telemetry</span></div>}</main></div>
 }
 
 export default App

@@ -15,7 +15,7 @@ export function WashroomIntelligence({ data }: { data: OperationsData }) {
   return <div className="content-screen">
     <div className="screen-heading">
       <div><span className="eyebrow">FABRIC SQL TELEMETRY</span><h2>Washroom Intelligence</h2><p>Persisted occupancy, traffic, supplies, and cleaning events.</p></div>
-      <span className="simulated-pill">DATABASE LIVE</span>
+      <span className="database-pill">DATABASE LIVE</span>
     </div>
     <div className="overview-metrics">
       <MetricCard label="Service now" value={String(serviceNow.length)} detail="Urgency score ≥ 70" icon={AlertTriangle} tone="orange"/>
